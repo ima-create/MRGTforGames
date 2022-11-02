@@ -22,6 +22,7 @@
 #pragma shader_feature_local _CHANNEL_MAP
 #pragma shader_feature_local _NORMAL_MAP
 #pragma shader_feature_local _EMISSION
+#pragma shader_feature_local _SHADOW
 #pragma shader_feature_local _TRIPLANAR_MAPPING
 #pragma shader_feature_local _LOCAL_SPACE_TRIPLANAR_MAPPING
 #pragma shader_feature_local_fragment _USE_SSAA
@@ -114,7 +115,7 @@
 #undef _GRADIENT
 #endif
 
-#if !defined(_DISABLE_ALBEDO_MAP) || defined(_TRIPLANAR_MAPPING) || defined(_CHANNEL_MAP) || defined(_NORMAL_MAP) || defined(_DISTANCE_TO_EDGE) || defined(_GRADIENT) || defined(_EMISSION)
+#if !defined(_DISABLE_ALBEDO_MAP) || defined(_TRIPLANAR_MAPPING) || defined(_CHANNEL_MAP) || defined(_NORMAL_MAP) || defined(_DISTANCE_TO_EDGE) || defined(_GRADIENT) || defined(_EMISSION) || defined(_SHADOW)
 #define _UV
 #else
 #undef _UV
@@ -475,6 +476,14 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
     half3 emissionMap = tex2D(_EmissiveMap, input.uv).xyz;
 #endif
 #endif
+
+#if defined(_SHADOW)
+#if defined(_URP)
+    half3 shadowMap = SAMPLE_TEXTURE2D(_ShadowMap, sampler_ShadowMap, input.uv).xyz;
+#else
+    half3 shadowMap = tex2D(_ShadowMap, input.uv).xyz;
+#endif
+#endif
     
     // Primitive clipping.
 #if defined(_CLIPPING_PRIMITIVE)
@@ -821,6 +830,10 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
 #endif
 #endif
 
+#if defined(_SHADOW)
+    output.rgb *= shadowMap * _ShadowPower;
+#endif
+    
     // Inner glow.
 #if defined(_INNER_GLOW)
     half2 uvGlow = pow(abs(distanceToEdge * _InnerGlowColor.a), _InnerGlowPower);
