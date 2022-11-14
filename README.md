@@ -4,6 +4,10 @@
 
 This repository is a fork branch of MRGT.
 
+　This is an MRGT custom project that includes experimental features within Ima Create Co., Ltd.
+
+　The features in this repository are different from the official ones, but we plan to feed back useful features to the official project.
+
 # What is Graphics Tools?
 
 MRTK Graphics Tools for Unity is a [Unity engine](https://unity.com/) package with code, shaders, assets, and samples created to help improve the visual fidelity of [mixed reality](https://docs.microsoft.com/windows/mixed-reality/discover/mixed-reality) applications while staying within performance budgets.
