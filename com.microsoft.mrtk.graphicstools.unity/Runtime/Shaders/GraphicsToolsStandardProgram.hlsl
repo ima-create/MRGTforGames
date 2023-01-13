@@ -854,7 +854,10 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
 #endif
 
 #if defined(_SHADOW)
-    output.rgb *= shadowMap * _ShadowPower;
+#if defined(_URP)
+    output.rgb *= saturate(SAMPLE_TEXTURE2D(_ShadowMap,sampler_ShadowMap,input.lightMapUV).rgb *_ShadowPower);
+#else
+#endif
 #endif
     
     // Inner glow.
