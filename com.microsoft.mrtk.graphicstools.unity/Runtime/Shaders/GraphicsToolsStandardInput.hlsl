@@ -12,7 +12,7 @@ struct Attributes
     float4 vertex : POSITION;
     // The default UV channel used for texturing.
     float2 uv : TEXCOORD0;
-#if defined(LIGHTMAP_ON)
+#if defined(LIGHTMAP_ON)|| defined(_SHADOW)
     // Reserved for Unity's light map UVs.
     float2 uv1 : TEXCOORD1;
 #endif
