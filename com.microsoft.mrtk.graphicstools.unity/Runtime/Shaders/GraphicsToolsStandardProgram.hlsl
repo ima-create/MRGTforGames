@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+//This file is intended to be used only for URP projects within Imacreate.
+
 #ifndef GT_STANDARD_PROGRAM
 #define GT_STANDARD_PROGRAM
 
@@ -304,6 +306,11 @@ Varyings VertexStage(Attributes input)
 
     output.color = UNITY_ACCESS_INSTANCED_PROP(PerMaterialInstanced, _Color);
 
+#if defined(_URP)
+#if defined(_SHADOW)
+    output.lightMapUV.xy = input.uv1; 
+#endif
+#endif
 #if defined(_VERTEX_COLORS)
     output.color *= input.color;
 #endif
