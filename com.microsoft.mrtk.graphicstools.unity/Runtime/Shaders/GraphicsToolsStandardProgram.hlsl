@@ -22,6 +22,7 @@
 #pragma shader_feature_local _CHANNEL_MAP
 #pragma shader_feature_local _NORMAL_MAP
 #pragma shader_feature_local _EMISSION
+#pragma shader_feature_local _USEGRAYSCALE
 #pragma shader_feature_local _SHADOW
 #pragma shader_feature_local _TRIPLANAR_MAPPING
 #pragma shader_feature_local _LOCAL_SPACE_TRIPLANAR_MAPPING
@@ -61,6 +62,18 @@
 /// <summary>
 ///  Defines and includes.
 /// </summary>
+
+#if defined(_USEGRAYSCALE)
+#define _USEGRAYSCALE
+#else
+#undef _USEGRAYSCALE
+#endif
+
+#if defined(_SHADOW)
+#define _SHADOW
+#else
+#undef _SHADOW
+#endif
 
 #if defined(_TRIPLANAR_MAPPING) || defined(_DIRECTIONAL_LIGHT) || defined(_DISTANT_LIGHT) || defined(_SPHERICAL_HARMONICS) || defined(_REFLECTIONS) || defined(_RIM_LIGHT) || defined(_PROXIMITY_LIGHT) || defined(_ENVIRONMENT_COLORING) || defined(LIGHTMAP_ON)
 #define _NORMAL
@@ -878,7 +891,11 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
 #elif defined(_ADDITIVE_ON)
     output *= _Fade;
 #endif
-
+#if defined(_USEGRAYSCALE)
+    // GrayScale
+    half o=  min(output.r,min(output.g,output.b));
+    output.xyz = (output.rgb * _GrayScale) + (float3(o,o,o)*(1-_GrayScale));
+#endif
     return output;
 }
 

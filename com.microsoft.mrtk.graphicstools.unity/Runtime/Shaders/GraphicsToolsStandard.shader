@@ -26,9 +26,13 @@ Shader "Graphics Tools/Standard"
         [Toggle(_EMISSION)] _EnableEmission("Enable Emission", Float) = 0.0
         [HDR]_EmissiveColor("Emissive Color", Color) = (0.0, 0.0, 0.0, 1.0)
         _EmissiveMap("Emissive Map", 2D) = "white" {}
+        //OrigignalFeature
+        [Enum(Microsoft.MixedReality.GraphicsTools.Editor.EmisiveUV)] _EmissiveUV("Emissive UVs",Float)=0.0
         [Toggle(_SHADOW)]_EnableShadowMap("Enable Shadow", Float) = 0.0
         _ShadowMap("Shadow Map", 2D) = "White" {}
         _ShadowPower("Shadow Power", Float) = 1.0
+        [Enum(Microsoft.MixedReality.GraphicsTools.Editor.ShadowMapUV)] _ShadowUV("ShadowMap UVs" , Float) = 0.0
+        //
         [Toggle(_TRIPLANAR_MAPPING)] _EnableTriplanarMapping("Triplanar Mapping", Float) = 0.0
         [Toggle(_LOCAL_SPACE_TRIPLANAR_MAPPING)] _EnableLocalSpaceTriplanarMapping("Local Space", Float) = 0.0
         _TriplanarMappingBlendSharpness("Blend Sharpness", Range(1.0, 16.0)) = 4.0
@@ -58,7 +62,10 @@ Shader "Graphics Tools/Standard"
         _FadeBeginDistance("Fade Begin Distance", Range(0.0, 10.0)) = 0.85
         _FadeCompleteDistance("Fade Complete Distance", Range(0.0, 10.0)) = 0.5
         _FadeMinValue("Fade Min Value", Range(0.0, 1.0)) = 0.0
-
+        //OriginalFeature
+        [Toggle(_USEGRAYSCALE)] _UseGrayScale("UseGrayScale", Float) = 0.0
+        _GrayScale("GrayScale",range(0,1)) = 1.0
+        
         // Fluent options.
         [Toggle(_HOVER_LIGHT)] _HoverLight("Hover Light", Float) = 0.0
         [Toggle(_HOVER_COLOR_OVERRIDE)] _EnableHoverColorOverride("Hover Color Override", Float) = 0.0

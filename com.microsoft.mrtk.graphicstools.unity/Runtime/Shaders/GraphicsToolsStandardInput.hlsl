@@ -44,7 +44,7 @@ struct Varyings
 #elif defined(_BLUR_TEXTURE_PREBAKED_BACKGROUND)
     float2 uvBackgroundRect : TEXCOORD4;
 #endif
-#if defined(LIGHTMAP_ON)
+#if defined(LIGHTMAP_ON)||defined(_UV1)|| defined(_SHADOW)
     float2 lightMapUV : TEXCOORD1;
 #endif
     half4 color : COLOR0;
@@ -209,6 +209,8 @@ CBUFFER_START(UnityPerMaterial)
     // #if defined(_EMISSION)
     half4 _EmissiveColor;
 
+half _ShadowInt;
+half _GrayScale;
    // #if degined(_SHADOW)
     float _ShadowPower;
 
