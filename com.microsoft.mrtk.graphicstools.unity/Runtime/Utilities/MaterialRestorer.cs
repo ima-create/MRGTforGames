@@ -55,7 +55,8 @@ namespace Microsoft.MixedReality.GraphicsTools
             }
 #endif
         }
-
+        
+        
         /// <summary>
         /// Call this method to restore a material to the state in time it was called with AddMaterialSnapshot. 
         /// This only works with material assets.
