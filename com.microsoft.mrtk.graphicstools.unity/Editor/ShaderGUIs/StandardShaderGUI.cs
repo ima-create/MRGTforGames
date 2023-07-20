@@ -20,6 +20,18 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
     }
 
     /// <summary>
+    /// MultiUVs
+    /// </summary>
+    public enum UVMode
+    {
+        UV0 = 0,
+        UV1 = 1,
+        UV2 = 2,
+        UV3 = 3
+    }
+    
+    
+    /// <summary>
     /// What type of direct light affects the surface.
     /// </summary>
     public enum LightMode
@@ -84,6 +96,15 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             public static readonly string primaryMapsTitle = "Main Maps";
             public static readonly string renderingOptionsTitle = "Rendering Options";
             public static readonly string advancedOptionsTitle = "Advanced Options";
+            public static readonly GUIContent uvMode = new GUIContent("UV Mode", "What Type use UV");
+            public static readonly string uv0 = "_MainTexUV0";
+            public static readonly string uv1 = "_MainTexUV1";
+            public static readonly string uv2 = "_MainTexUV2";
+            public static readonly string uv3 = "_MainTexUV3";
+            public static readonly GUIContent euvMode = new GUIContent("Emission UV Mode", "What Type use UV");
+            public static readonly string euv0 = "_EmissionMapUV0";
+            public static readonly string euv1 = "_EmissionMapUV1";
+            public static readonly string euv2 = "_EmissionMapUV2";
             public static readonly string fluentOptionsTitle = "Fluent Options";
             public static readonly string stencilComparisonName = "_StencilComparison";
             public static readonly string stencilOperationName = "_StencilOperation";
@@ -213,6 +234,7 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
         protected MaterialProperty albedoMap;
         protected MaterialProperty albedoColor;
         protected MaterialProperty albedoAlphaMode;
+        protected MaterialProperty uvMode;
         protected MaterialProperty albedoAssignedAtRuntime;
         protected MaterialProperty alphaCutoff;
         protected MaterialProperty alphaFade;
@@ -224,6 +246,7 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
         protected MaterialProperty enableEmission;
         protected MaterialProperty emissiveColor;
         protected MaterialProperty emissiveMap;
+        protected MaterialProperty euvMode;
         protected MaterialProperty enableTriplanarMapping;
         protected MaterialProperty enableLocalSpaceTriplanarMapping;
         protected MaterialProperty triplanarMappingBlendSharpness;
@@ -328,6 +351,7 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             albedoMap = FindProperty("_MainTex", props);
             albedoColor = FindProperty("_Color", props);
             albedoAlphaMode = FindProperty("_AlbedoAlphaMode", props);
+            uvMode = FindProperty("_TargetMainTexUV", props);
             albedoAssignedAtRuntime = FindProperty("_AlbedoAssignedAtRuntime", props);
             alphaCutoff = FindProperty("_Cutoff", props);
             alphaFade = FindProperty("_Fade", props);
@@ -341,6 +365,7 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             enableEmission = FindProperty("_EnableEmission", props);
             emissiveMap = FindProperty("_EmissiveMap", props);
             emissiveColor = FindProperty("_EmissiveColor", props);
+            euvMode = FindProperty("_TargetEmissiveMapUV", props);
             enableTriplanarMapping = FindProperty("_EnableTriplanarMapping", props);
             enableLocalSpaceTriplanarMapping = FindProperty("_EnableLocalSpaceTriplanarMapping", props);
             triplanarMappingBlendSharpness = FindProperty("_TriplanarMappingBlendSharpness", props);
@@ -589,6 +614,46 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             {
                 materialEditor.ShaderProperty(albedoAssignedAtRuntime, Styles.albedoAssignedAtRuntime, 2);
             }
+            else
+            {
+               // materialEditor.ShaderProperty(uvMode,Styles.uvMode, 2);
+                switch ((UVMode)uvMode.floatValue)
+                {
+                    default:
+                    case UVMode.UV0:
+                    {
+                        material.EnableKeyword(Styles.uv0);
+                        material.DisableKeyword(Styles.uv1);
+                        material.DisableKeyword(Styles.uv2);
+                        material.DisableKeyword(Styles.uv3);
+                    }
+                        break;
+                    case UVMode.UV1:
+                    {
+                        material.EnableKeyword(Styles.uv1);
+                        material.DisableKeyword(Styles.uv0);
+                        material.DisableKeyword(Styles.uv2);
+                        material.DisableKeyword(Styles.uv3);
+                    }
+                        break;
+                    case UVMode.UV2:
+                    {
+                        material.EnableKeyword(Styles.uv2);
+                        material.DisableKeyword(Styles.uv0);
+                        material.DisableKeyword(Styles.uv1);
+                        material.DisableKeyword(Styles.uv3);
+                    }
+                        break;
+                    case UVMode.UV3:
+                    {
+                        material.EnableKeyword(Styles.uv3);
+                        material.DisableKeyword(Styles.uv0);
+                        material.DisableKeyword(Styles.uv1);
+                        material.DisableKeyword(Styles.uv2);
+                    }
+                        break;
+                }
+            }
 
             RenderingMode mode = (RenderingMode)renderingMode.floatValue;
             RenderingMode customMode = (RenderingMode)customRenderingMode.floatValue;
@@ -656,6 +721,35 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
                 EditorGUI.indentLevel += 2;
                 materialEditor.TexturePropertySingleLine(Styles.emissiveColor, emissiveMap, emissiveColor);
                 EditorGUI.indentLevel -= 2;
+                if (emissiveMap.textureValue != null)
+                {
+                     materialEditor.ShaderProperty(euvMode,Styles.euvMode, 2);
+                switch ((UVMode)euvMode.floatValue)
+                {
+                    default:
+                    case UVMode.UV0:
+                    {
+                        material.EnableKeyword(Styles.euv0);
+                        material.DisableKeyword(Styles.euv1);
+                        material.DisableKeyword(Styles.euv2);
+                    }
+                        break;
+                    case UVMode.UV1:
+                    {
+                        material.EnableKeyword(Styles.euv1);
+                        material.DisableKeyword(Styles.euv0);
+                        material.DisableKeyword(Styles.euv2);
+                    }
+                        break;
+                    case UVMode.UV2:
+                    {
+                        material.EnableKeyword(Styles.euv2);
+                        material.DisableKeyword(Styles.euv0);
+                        material.DisableKeyword(Styles.euv1);
+                    }
+                        break;
+                }
+                }
             }
 
             GUI.enabled = !PropertyEnabled(enableSSAA);

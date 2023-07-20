@@ -18,10 +18,12 @@
 
 #pragma shader_feature_local _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHABLEND_TRANS_ON _ADDITIVE_ON
 #pragma shader_feature_local _DISABLE_ALBEDO_MAP
+#pragma shader_feature_local _ _MainTexUV0 _MainTexUV1 _MainTexUV2 _MainTexUV3
 #pragma shader_feature_local_fragment _ _METALLIC_TEXTURE_ALBEDO_CHANNEL_A _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 #pragma shader_feature_local _CHANNEL_MAP
 #pragma shader_feature_local _NORMAL_MAP
 #pragma shader_feature_local _EMISSION
+#pragma shader_feature_local _ _EmissionMapUV0 _EmissionMapUV1 _EmissionMapUV2
 #pragma shader_feature_local _SHADOW
 #pragma shader_feature_local _TRIPLANAR_MAPPING
 #pragma shader_feature_local _LOCAL_SPACE_TRIPLANAR_MAPPING
@@ -245,7 +247,6 @@ Varyings VertexStage(Attributes input)
 
 #if defined(_BORDER_LIGHT) || defined(_ROUND_CORNERS)
     output.uv = input.uv;
-
 #if defined(_USE_WORLD_SCALE)
     output.scale.z = canvasScale;
  #else
@@ -269,7 +270,14 @@ Varyings VertexStage(Attributes input)
 #endif
 
 #elif defined(_UV)
+#if defined(_MainTexUV0)
     output.uv = TRANSFORM_TEX(input.uv, _MainTex);
+#elif defined(_MainTexUV1)
+    output.uv= TRANSFORM_TEX(input.uv1, _MainTex);
+#endif
+#if defined(_EmissionMapUV1)
+    output.uv1 = TRANSFORM_TEX(input.uv1, _MainTex);
+#endif
 #endif
 
 #if defined(_UV_SCREEN)
@@ -474,9 +482,17 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
 
 #if defined(_EMISSION)
 #if defined(_URP)
+#if defined(_EmissionMapUV0)
     half3 emissionMap = SAMPLE_TEXTURE2D(_EmissiveMap, sampler_EmissiveMap, input.uv).xyz;
+#elif defined(_EmissionMapUV1)
+    half3 emissionMap = SAMPLE_TEXTURE2D(_EmissiveMap, sampler_EmissiveMap, input.uv1).xyz;
+#endif
 #else
+#if defined(_EmissionMapUV0)
     half3 emissionMap = tex2D(_EmissiveMap, input.uv).xyz;
+#elif defined(_EmissionMapUV1)
+    half3 emissionMap = tex2D(_EmissiveMap, input.uv1).xyz;
+#endif
 #endif
 #endif
 
@@ -878,6 +894,7 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
 #elif defined(_ADDITIVE_ON)
     output *= _Fade;
 #endif
+
 
     return output;
 }

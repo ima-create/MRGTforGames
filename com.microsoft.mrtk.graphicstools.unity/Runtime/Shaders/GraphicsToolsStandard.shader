@@ -12,6 +12,7 @@ Shader "Graphics Tools/Standard"
         // Main maps.
         _Color("Color", Color) = (1.0, 1.0, 1.0, 1.0)
         _MainTex("Albedo", 2D) = "white" {}
+        [Enum(Microsoft.MixedReality.GraphicsTools.Editor.UVMode)]_TargetMainTexUV("Target UV", Float) = 0// "UV0"
         [Enum(Microsoft.MixedReality.GraphicsTools.Editor.AlbedoAlphaMode)] _AlbedoAlphaMode("Albedo Alpha Mode", Float) = 0 // "Transparency"
         [Toggle] _AlbedoAssignedAtRuntime("Albedo Assigned at Runtime", Float) = 0.0
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -26,6 +27,7 @@ Shader "Graphics Tools/Standard"
         [Toggle(_EMISSION)] _EnableEmission("Enable Emission", Float) = 0.0
         [HDR]_EmissiveColor("Emissive Color", Color) = (0.0, 0.0, 0.0, 1.0)
         _EmissiveMap("Emissive Map", 2D) = "white" {}
+        [Enum(Microsoft.MixedReality.GraphicsTools.Editor.UVMode)]_TargetEmissiveMapUV("Target UV", Float) = 0// "UV0"
         [Toggle(_SHADOW)]_EnableShadowMap("Enable Shadow", Float) = 0.0
         _ShadowMap("Shadow Map", 2D) = "White" {}
         _ShadowPower("Shadow Power", Float) = 1.0
@@ -269,6 +271,7 @@ Shader "Graphics Tools/Standard"
             ENDHLSL
         }
     }
+    
     
     CustomEditor "Microsoft.MixedReality.GraphicsTools.Editor.StandardShaderGUI"
 }
