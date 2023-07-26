@@ -270,11 +270,7 @@ Varyings VertexStage(Attributes input)
 #endif
 
 #elif defined(_UV)
-#if defined(_MainTexUV0)
     output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-#elif defined(_MainTexUV1)
-    output.uv= TRANSFORM_TEX(input.uv1, _MainTex);
-#endif
 #if defined(_EmissionMapUV1)
     output.uv1 = TRANSFORM_TEX(input.uv1, _MainTex);
 #endif
@@ -482,16 +478,16 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
 
 #if defined(_EMISSION)
 #if defined(_URP)
-#if defined(_EmissionMapUV0)
-    half3 emissionMap = SAMPLE_TEXTURE2D(_EmissiveMap, sampler_EmissiveMap, input.uv).xyz;
-#elif defined(_EmissionMapUV1)
+#if defined(_EmissionMapUV1)
     half3 emissionMap = SAMPLE_TEXTURE2D(_EmissiveMap, sampler_EmissiveMap, input.uv1).xyz;
+#else 
+    half3 emissionMap = SAMPLE_TEXTURE2D(_EmissiveMap, sampler_EmissiveMap, input.uv).xyz;
 #endif
 #else
-#if defined(_EmissionMapUV0)
-    half3 emissionMap = tex2D(_EmissiveMap, input.uv).xyz;
-#elif defined(_EmissionMapUV1)
+#if defined(_EmissionMapUV1)
     half3 emissionMap = tex2D(_EmissiveMap, input.uv1).xyz;
+#else 
+    half3 emissionMap = tex2D(_EmissiveMap, input.uv).xyz;
 #endif
 #endif
 #endif
