@@ -26,11 +26,17 @@ Shader "Graphics Tools/Standard Canvas"
         [Toggle(_EMISSION)] _EnableEmission("Enable Emission", Float) = 0.0
         [HDR]_EmissiveColor("Emissive Color", Color) = (0.0, 0.0, 0.0, 1.0)
         _EmissiveMap("Emissive Map",2D) = "white" {}
+///ImaCreateOrizinal
+        [Toggle(_SHADOW)]_EnableShadowMap("Enable Shadow", Float) = 0.0
+        _ShadowMap("Shadow Map", 2D) = "White" {}
+        _ShadowPower("Shadow Power", Float) = 1.0
+///ImaCreateOrizinal
         [Toggle(_TRIPLANAR_MAPPING)] _EnableTriplanarMapping("Triplanar Mapping", Float) = 0.0
         [Toggle(_LOCAL_SPACE_TRIPLANAR_MAPPING)] _EnableLocalSpaceTriplanarMapping("Local Space", Float) = 0.0
         _TriplanarMappingBlendSharpness("Blend Sharpness", Range(1.0, 16.0)) = 4.0
         [Toggle(_USE_SSAA)] _EnableSSAA("Super Sample Anti Aliasing", Float) = 0.0
         _MipmapBias("Mipmap Bias", Range(-5.0, 0.0)) = -2.0
+        [Toggle(_RECEIVESHADOW)] _ReceiveShadow("ReceiveShadow",Float) =0.0
 
         // Rendering options.
         [Enum(Microsoft.MixedReality.GraphicsTools.Editor.LightMode)] _DirectionalLight("Light Mode", Float) = 0.0 // "Unlit"

@@ -36,6 +36,9 @@ struct Attributes
 struct Varyings
 {
     float4 position : SV_POSITION;
+#if defined(_USE_UNITY_FOG)
+    float fogFactor: TEXCOORD5;
+#endif
 #if defined(_UV)
     float2 uv : TEXCOORD0;
 #endif
@@ -82,6 +85,9 @@ struct Varyings
     half3 worldNormal : COLOR3;
 #endif
 #endif
+#if defined(_RECEIVESHADOW) && defined(_URP)
+    half4 shadowCoord : TEXCOORD4;
+#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -105,11 +111,15 @@ SAMPLER(sampler_NormalMap);
 TEXTURE2D(_EmissiveMap);
 SAMPLER(sampler_EmissiveMap);
 #endif
+#if defined(_SHADOW)
+TEXTURE2D(_ShadowMap);
+SAMPLER(sampler_ShadowMap);
+#endif
 #if defined(_IRIDESCENCE)
 TEXTURE2D(_IridescentSpectrumMap);
 SAMPLER(sampler_IridescentSpectrumMap);
 #endif
-#if defined(_BLUR_TEXTURE)
+#if defined(_BLUR_EmissionTEXTURE)
 TEXTURE2D_X(_blurTexture);
 SAMPLER(sampler_blurTexture);
 #elif defined(_BLUR_TEXTURE_2)
@@ -129,6 +139,9 @@ sampler2D _NormalMap;
 #endif
 #if defined(_EMISSION)
 sampler2D _EmissiveMap;
+#endif
+#if defined(_SHADOW)
+sampler2D _ShadowMap;
 #endif
 #if defined(_IRIDESCENCE)
 sampler2D _IridescentSpectrumMap;
@@ -201,6 +214,9 @@ CBUFFER_START(UnityPerMaterial)
 
     // #if defined(_EMISSION)
     half4 _EmissiveColor;
+
+   // #if degined(_SHADOW)
+    float _ShadowPower;
 
     // #if defined(_USE_SSAA)
     float _MipmapBias;

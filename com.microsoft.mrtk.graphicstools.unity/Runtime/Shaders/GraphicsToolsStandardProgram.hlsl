@@ -16,6 +16,7 @@
 
 #pragma shader_feature_local _ _ALPHATEST_ON
 #pragma shader_feature_local _DISABLE_ALBEDO_MAP
+#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
 #pragma shader_feature_local_fragment _ _METALLIC_TEXTURE_ALBEDO_CHANNEL_A _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 #pragma shader_feature_local _CHANNEL_MAP
 #pragma shader_feature_local _ _DIRECTIONAL_LIGHT _DISTANT_LIGHT
@@ -28,6 +29,7 @@
 #pragma shader_feature_local _ROUND_CORNERS
 #pragma shader_feature_local_fragment _INDEPENDENT_CORNERS
 #pragma shader_feature_local_fragment _ROUND_CORNERS_HIDE_INTERIOR
+#pragma shader_feature_local _RECEIVESHADOW
 #pragma shader_feature_local_fragment _ _EDGE_SMOOTHING_AUTOMATIC
 #pragma shader_feature_local _USE_WORLD_SCALE
 
@@ -35,6 +37,8 @@
 #pragma shader_feature_local _ _ALPHABLEND_ON _ALPHABLEND_TRANS_ON _ADDITIVE_ON
 #pragma shader_feature_local _NORMAL_MAP
 #pragma shader_feature_local _EMISSION
+#pragma shader_feature_local _SHADOW
+#pragma shader_feature_local _USE_UNITY_FOG
 #pragma shader_feature_local _TRIPLANAR_MAPPING
 #pragma shader_feature_local _LOCAL_SPACE_TRIPLANAR_MAPPING
 #pragma shader_feature_local_fragment _USE_SSAA
@@ -117,7 +121,7 @@
 #undef _GRADIENT
 #endif
 
-#if !defined(_DISABLE_ALBEDO_MAP) || defined(_TRIPLANAR_MAPPING) || defined(_CHANNEL_MAP) || defined(_NORMAL_MAP) || defined(_DISTANCE_TO_EDGE) || defined(_GRADIENT) || defined(_EMISSION)
+#if !defined(_DISABLE_ALBEDO_MAP) || defined(_TRIPLANAR_MAPPING) || defined(_CHANNEL_MAP) || defined(_NORMAL_MAP) || defined(_DISTANCE_TO_EDGE) || defined(_GRADIENT) || defined(_EMISSION) || defined(_SHADOW)
 #define _UV
 #else
 #undef _UV
@@ -127,6 +131,10 @@
 #define _UV_SCREEN
 #else
 #undef _UV_SCREEN
+#endif
+
+#if defined(_USE_UNITY_FOG)
+#pragma multi_compile_fog
 #endif
 
 #if defined(_URP)
@@ -139,9 +147,13 @@
 #include "UnityStandardUtils.cginc"
 #endif 
 
+
+
+
 #include "GraphicsToolsCommon.hlsl"
 #include "GraphicsToolsStandardInput.hlsl"
 #include "GraphicsToolsLighting.hlsl"
+
 
 /// <summary>
 /// Vertex shader entry point.
@@ -375,7 +387,13 @@ Varyings VertexStage(Attributes input)
     output.worldNormal = worldNormal;
 #endif
 #endif
-
+#if defined(_RECEIVESHADOW) && defined(_URP)
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(vertexPosition.xyz);
+    output.shadowCoord = GetShadowCoord(vertexInput);
+#endif
+#if defined(_USE_UNITY_FOG)
+    output.fogFactor = ComputeFogFactor(output.position.z);
+#endif
     return output;
 }
 
@@ -471,6 +489,14 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
     half3 emissionMap = SAMPLE_TEXTURE2D(_EmissiveMap, sampler_EmissiveMap, input.uv).xyz;
 #else
     half3 emissionMap = tex2D(_EmissiveMap, input.uv).xyz;
+#endif
+#endif
+
+#if defined(_SHADOW)
+#if defined(_URP)
+    half3 shadowMap = SAMPLE_TEXTURE2D(_ShadowMap, sampler_ShadowMap, input.uv).xyz;
+#else
+    half3 shadowMap = tex2D(_ShadowMap, input.uv).xyz;
 #endif
 #endif
     
@@ -788,12 +814,24 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
     output.rgb = GTGlobalIllumination(brdfData, bakedGI, occlusion, worldNormal, worldViewDir);
 
     // Direct lighting.
+    #if defined(_RECEIVESHADOW) && defined(_URP)
+    GTMainLight light = GTGetMainLight(input.shadowCoord);
+#else
     GTMainLight light = GTGetMainLight();
+#endif
     // Non Photorealistic
 #if defined(_NON_PHOTOREALISTIC)
+#if defined(_RECEIVESHADOW)
+    output.rgb += GTLightingNonPhotorealistic(brdfData, light.color, light.direction, worldNormal, worldViewDir, light.shadowAttenuation);
+#else
     output.rgb += GTLightingNonPhotorealistic(brdfData, light.color, light.direction, worldNormal, worldViewDir);
+#endif
+#else
+#if defined(_RECEIVESHADOW)
+    output.rgb += GTLightingPhysicallyBased(brdfData, light.color, light.direction, worldNormal, worldViewDir, light.shadowAttenuation);
 #else
     output.rgb += GTLightingPhysicallyBased(brdfData, light.color, light.direction, worldNormal, worldViewDir);
+#endif
 #endif
     // No lighting, but show reflections.
 #elif defined(_REFLECTIONS) 
@@ -824,6 +862,10 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
 #endif
 #endif
 
+#if defined(_SHADOW)
+    output.rgb *= shadowMap * _ShadowPower;
+#endif
+    
     // Inner glow.
 #if defined(_INNER_GLOW)
     half2 uvGlow = pow(abs(distanceToEdge * _InnerGlowColor.a), _InnerGlowPower);
@@ -865,7 +907,9 @@ half4 PixelStage(Varyings input, bool facing : SV_IsFrontFace) : SV_Target
 #elif defined(_ADDITIVE_ON)
     output *= _Fade;
 #endif
-
+#if defined(_USE_UNITY_FOG)
+    output.rgb = MixFog(output.rgb, input.fogFactor);
+#endif
     return output;
 }
 

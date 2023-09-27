@@ -25,7 +25,10 @@ Shader "Graphics Tools/Standard"
         _NormalMapScale("Scale", Float) = 1.0
         [Toggle(_EMISSION)] _EnableEmission("Enable Emission", Float) = 0.0
         [HDR]_EmissiveColor("Emissive Color", Color) = (0.0, 0.0, 0.0, 1.0)
-        _EmissiveMap("Emissive Map",2D) = "white" {}
+        _EmissiveMap("Emissive Map", 2D) = "white" {}
+        [Toggle(_SHADOW)]_EnableShadowMap("Enable Shadow", Float) = 0.0
+        _ShadowMap("Shadow Map", 2D) = "White" {}
+        _ShadowPower("Shadow Power", Float) = 1.0
         [Toggle(_TRIPLANAR_MAPPING)] _EnableTriplanarMapping("Triplanar Mapping", Float) = 0.0
         [Toggle(_LOCAL_SPACE_TRIPLANAR_MAPPING)] _EnableLocalSpaceTriplanarMapping("Local Space", Float) = 0.0
         _TriplanarMappingBlendSharpness("Blend Sharpness", Range(1.0, 16.0)) = 4.0
@@ -35,8 +38,10 @@ Shader "Graphics Tools/Standard"
         // Rendering options.
         [Toggle(_DIRECTIONAL_LIGHT)] _DirectionalLight("Light Mode", Float) = 1.0 // "LitDirectional"
         [Toggle(_SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1.0
+        [Toggle(_RECEIVESHADOW)] _ReceiveShadow("ReceiveShadow",Float) =0.0
         [Toggle(_SPHERICAL_HARMONICS)] _SphericalHarmonics("Spherical Harmonics", Float) = 0.0
         [Toggle(_NON_PHOTOREALISTIC)] _NPR("Non-Photorealistic Rendering", Float) = 0.0
+        [Toggle(_USE_UNITY_FOG)] _UseUnityFog("Use Unity Fog", Float) = 0.0
         [Toggle(_REFLECTIONS)] _Reflections("Reflections", Float) = 0.0
         [Toggle(_RIM_LIGHT)] _RimLight("Rim Light", Float) = 0.0
         _RimColor("Rim Color", Color) = (0.5, 0.5, 0.5, 1.0)
