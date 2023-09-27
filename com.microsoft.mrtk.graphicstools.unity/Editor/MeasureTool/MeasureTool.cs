@@ -184,7 +184,7 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
 #if UNITY_2021_2_OR_NEWER
             Vector3[] array = VerticesFromBounds(rend.localBounds);
 #else
-            UnityEngine.Mesh mesh = rend.GetComponent<MeshFilter>().sharedMesh;
+            Mesh mesh = rend.GetComponent<MeshFilter>().sharedMesh;
             Vector3[] array = VerticesFromBounds(mesh.bounds);
 #endif
             if (settings.Scale == MeasureToolSettings.ToolScale.Local)

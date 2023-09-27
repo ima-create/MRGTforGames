@@ -104,6 +104,9 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             public static readonly GUIContent enableEmission = new GUIContent("Emission", "Enable Emission");
             public static readonly GUIContent emissiveColor = new GUIContent("Color");
             public static readonly GUIContent emissiveMap = new GUIContent("EmissionMap");
+            public static readonly GUIContent enableShadow = new GUIContent("Shadow", "Enable Shadow");
+            public static readonly GUIContent shadowMap = new GUIContent("ShadowMap");
+            public static readonly GUIContent shadowPower = new GUIContent("ShadowPower");
             public static readonly GUIContent enableTriplanarMapping = new GUIContent("Triplanar Mapping", "Enable Triplanar Mapping, a technique which programmatically generates UV coordinates");
             public static readonly GUIContent enableLocalSpaceTriplanarMapping = new GUIContent("Local Space", "If True Triplanar Mapping is Calculated in Local Space");
             public static readonly GUIContent triplanarMappingBlendSharpness = new GUIContent("Blend Sharpness", "The Power of the Blend with the Normal");
@@ -113,7 +116,9 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             public static readonly string[] lightModeNames = new string[] { "Unlit", "Lit - Directional", "Lit - Distant" };
             public static readonly string lightModeLitDirectional = "_DIRECTIONAL_LIGHT";
             public static readonly string lightModeLitDistant = "_DISTANT_LIGHT";
+            public static readonly GUIContent enableUnityFog = new GUIContent("UnityFog", "Enable Unity Fog");
             public static readonly GUIContent nonPhotorealisticRendering = new GUIContent("Non-Photorealistic Rendering","Non-Photorealistic Rendering");
+            public static readonly GUIContent receiveShadow = new GUIContent("Receive Shadow(URP Only)");
             public static readonly GUIContent specularHighlights = new GUIContent("Specular Highlights", "Calculate Specular Highlights");
             public static readonly GUIContent sphericalHarmonics = new GUIContent("Spherical Harmonics", "Read From Spherical Harmonics Data for Ambient Light");
             public static readonly GUIContent reflections = new GUIContent("Reflections", "Calculate Glossy Reflections");
@@ -224,10 +229,14 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
         protected MaterialProperty enableEmission;
         protected MaterialProperty emissiveColor;
         protected MaterialProperty emissiveMap;
+        protected MaterialProperty enableShadow;
+        protected MaterialProperty shadowMap;
+        protected MaterialProperty shadowPower;
         protected MaterialProperty enableTriplanarMapping;
         protected MaterialProperty enableLocalSpaceTriplanarMapping;
         protected MaterialProperty triplanarMappingBlendSharpness;
         protected MaterialProperty enableSSAA;
+        protected MaterialProperty enableUnityFog;
         protected MaterialProperty mipmapBias;
         protected MaterialProperty metallic;
         protected MaterialProperty smoothness;
@@ -235,6 +244,7 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
         protected MaterialProperty specularHighlights;
         protected MaterialProperty sphericalHarmonics;
         protected MaterialProperty nonPhotorealisticRendering;
+        protected MaterialProperty receiveShadow;
         protected MaterialProperty reflections;
         protected MaterialProperty rimLight;
         protected MaterialProperty rimColor;
@@ -341,6 +351,10 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             enableEmission = FindProperty("_EnableEmission", props);
             emissiveMap = FindProperty("_EmissiveMap", props);
             emissiveColor = FindProperty("_EmissiveColor", props);
+            enableShadow = FindProperty("_EnableShadowMap", props);
+            shadowMap = FindProperty("_ShadowMap", props);
+            shadowPower = FindProperty("_ShadowPower", props);
+            enableUnityFog = FindProperty("_UseUnityFog", props);
             enableTriplanarMapping = FindProperty("_EnableTriplanarMapping", props);
             enableLocalSpaceTriplanarMapping = FindProperty("_EnableLocalSpaceTriplanarMapping", props);
             triplanarMappingBlendSharpness = FindProperty("_TriplanarMappingBlendSharpness", props);
@@ -350,6 +364,7 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             specularHighlights = FindProperty("_SpecularHighlights", props);
             sphericalHarmonics = FindProperty("_SphericalHarmonics", props);
             nonPhotorealisticRendering = FindProperty("_NPR", props);
+            receiveShadow = FindProperty("_ReceiveShadow", props);
             reflections = FindProperty("_Reflections", props);
             rimLight = FindProperty("_RimLight", props);
             rimColor = FindProperty("_RimColor", props);
@@ -521,6 +536,11 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             SetShaderFeatureActive(material, "_EMISSION", "_EnableEmission", emission);
             SetColorProperty(material, "_EmissiveColor", emissionColor);
 
+            SetShaderFeatureActive(material, "_SHADOW", "_EnableShadow", null);
+            if (!newShaderIsStandardCanvas)
+            {
+                SetShaderFeatureActive(material, "_REFLECTIONS", "_Reflections", reflections);
+            }
             if (!newShaderIsStandardCanvas)
             {
                 SetShaderFeatureActive(material, "_REFLECTIONS", "_Reflections", reflections);
@@ -672,6 +692,16 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
             // SSAA implementation based off this article: https://medium.com/@bgolus/sharper-mipmapping-using-shader-based-supersampling-ed7aadb47bec
             materialEditor.ShaderProperty(enableSSAA, Styles.enableSSAA);
 
+            
+            materialEditor.ShaderProperty(enableShadow, Styles.enableShadow);
+
+            if (PropertyEnabled(enableShadow))
+            {
+                EditorGUI.indentLevel += 2;
+                materialEditor.TexturePropertySingleLine(Styles.shadowMap,shadowMap, shadowPower);
+                EditorGUI.indentLevel -= 2;
+            }
+            
             if (PropertyEnabled(enableSSAA))
             {
                 materialEditor.ShaderProperty(mipmapBias, Styles.mipmapBias, 2);
@@ -724,6 +754,8 @@ namespace Microsoft.MixedReality.GraphicsTools.Editor
                 materialEditor.ShaderProperty(specularHighlights, Styles.specularHighlights, 2);
                 materialEditor.ShaderProperty(sphericalHarmonics, Styles.sphericalHarmonics, 2);
                 materialEditor.ShaderProperty(nonPhotorealisticRendering, Styles.nonPhotorealisticRendering, 2);
+                materialEditor.ShaderProperty(receiveShadow, Styles.receiveShadow, 2);
+                materialEditor.ShaderProperty(enableUnityFog, Styles.enableUnityFog, 2);
             }
 
             materialEditor.ShaderProperty(reflections, Styles.reflections);

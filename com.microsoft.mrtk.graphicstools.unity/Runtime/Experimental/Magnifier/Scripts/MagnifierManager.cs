@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 #if GT_USE_URP
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
@@ -49,17 +48,6 @@ namespace Microsoft.MixedReality.GraphicsTools
         [SerializeField]
         private int rendererIndex = 0;
 
-        [Tooltip("Should a DrawFullscreenFeature feature be automatically added?")]
-        [SerializeField]
-        private bool AutoAddDrawFullscreenFeature = true;
-
-        [Tooltip("The name of the render feature to add the Draw Fullscreen Feature after (or before) to enforce custom sorting. Adds to the end of the render feature list when empty.")]
-        public string targetDrawFullscreenFeatureName = string.Empty;
-
-        public enum AddMode { After, Before }
-        [Tooltip("When a Target Draw Fullscreen Feature Name is specified, should it be added before or after the feature in the list?")]
-        public AddMode targetDrawFullscreenFeatureAddMode = AddMode.After;
-
         [SerializeField]
         private DrawFullscreenFeature.Settings drawFullscreenSettings = new DrawFullscreenFeature.Settings()
         {
@@ -69,16 +57,6 @@ namespace Microsoft.MixedReality.GraphicsTools
             SourceTextureId = string.Empty,
             DestinationTextureId = "MagnifierTexture",
         };
-
-        [Tooltip("Should a RenderObjects feature be automatically added?")]
-        [SerializeField]
-        private bool AutoAddRenderObjectsFeature = true;
-
-        [Tooltip("The name of the render feature to add the Draw Objects Feature after (or before) to enforce custom sorting. Adds to the end of the render feature list when empty.")]
-        public string targetDrawObjectsFeatureName = string.Empty;
-
-        [Tooltip("When a Target Draw Objects Feature Name is specified, should it be added before or after the feature in the list?")]
-        public AddMode targetDrawObjectsFeatureAddMode = AddMode.After;
 
         [SerializeField]
         private RenderObjects.RenderObjectsSettings renderObjectsSettings = new RenderObjects.RenderObjectsSettings()
@@ -93,8 +71,8 @@ namespace Microsoft.MixedReality.GraphicsTools
         [SerializeField, HideInInspector]
         private Material defaultBlitMaterial;
 
-        private DrawFullscreenFeature drawFullscreenFeature;
-        private ScriptableRendererFeature renderObjectsFeature;
+        private DrawFullscreenFeature magnifierFeature;
+        private ScriptableRendererFeature renderTransparent;
         private bool initialized = false;
 
 #if UNITY_2021_2_OR_NEWER
@@ -133,24 +111,19 @@ namespace Microsoft.MixedReality.GraphicsTools
         {
             if (initialized)
             {
-                if (drawFullscreenFeature != null)
+                if (magnifierFeature != null)
                 {
-                    rendererData.rendererFeatures.Remove(drawFullscreenFeature);
-                    drawFullscreenFeature = null;
+                    rendererData.rendererFeatures.Remove(magnifierFeature);
                 }
 
-                if (renderObjectsFeature != null)
+                if (renderTransparent != null)
                 {
-                    rendererData.rendererFeatures.Remove(renderObjectsFeature);
-                    renderObjectsFeature = null;
+                    rendererData.rendererFeatures.Remove(renderTransparent);
                 }
 
                 // Reset the layer masks.
-                if (AutoAddRenderObjectsFeature)
-                {
-                    rendererData.opaqueLayerMask = previousOpaqueLayerMask;
-                    rendererData.transparentLayerMask = previousTransparentLayerMask;
-                }
+                rendererData.opaqueLayerMask = previousOpaqueLayerMask;
+                rendererData.transparentLayerMask = previousTransparentLayerMask;
 
                 rendererData.SetDirty();
 
@@ -184,28 +157,21 @@ namespace Microsoft.MixedReality.GraphicsTools
 
         private void CreateRendererFeatures()
         {
-            if (AutoAddDrawFullscreenFeature)
-            {
-                drawFullscreenFeature = CreateMagnifierFullsreenFeature("Magnifier Draw Fullscreen", drawFullscreenSettings);
-                InsertFeature(rendererData.rendererFeatures, drawFullscreenFeature, targetDrawFullscreenFeatureName, targetDrawFullscreenFeatureAddMode);
-            }
+            magnifierFeature = CreateMagnifierFullsreenFeature("Magnifier Draw Fullscreen Feature", drawFullscreenSettings);
+            rendererData.rendererFeatures.Add(magnifierFeature);
+            renderTransparent = CreateMagnifierRenderObjectsFeature("Magnifier Render Objects", renderObjectsSettings);
+            rendererData.rendererFeatures.Add(renderTransparent);
 
-            if (AutoAddRenderObjectsFeature)
-            {
-                renderObjectsFeature = CreateMagnifierRenderObjectsFeature("Magnifier Render Objects", renderObjectsSettings);
-                InsertFeature(rendererData.rendererFeatures, renderObjectsFeature, targetDrawObjectsFeatureName, targetDrawObjectsFeatureAddMode);
-
-                //Don't render the layers rendered by the RenderObjectsFeature
-                previousOpaqueLayerMask = rendererData.opaqueLayerMask;
-                previousTransparentLayerMask = rendererData.transparentLayerMask;
-                rendererData.opaqueLayerMask &= ~renderObjectsSettings.filterSettings.LayerMask;
-                rendererData.transparentLayerMask &= ~renderObjectsSettings.filterSettings.LayerMask;
-            }
+            // Don't render the layers rendered by the RenderObjectsFeature
+            previousOpaqueLayerMask = rendererData.opaqueLayerMask;
+            previousTransparentLayerMask = rendererData.transparentLayerMask;
+            rendererData.opaqueLayerMask &= ~renderObjectsSettings.filterSettings.LayerMask;
+            rendererData.transparentLayerMask &= ~renderObjectsSettings.filterSettings.LayerMask;
 
             rendererData.SetDirty();
         }
 
-        private static DrawFullscreenFeature CreateMagnifierFullsreenFeature(string name, DrawFullscreenFeature.Settings settings)
+        private DrawFullscreenFeature CreateMagnifierFullsreenFeature(string name, DrawFullscreenFeature.Settings settings)
         {
             DrawFullscreenFeature feature = ScriptableObject.CreateInstance<DrawFullscreenFeature>();
             feature.name = name;
@@ -214,35 +180,13 @@ namespace Microsoft.MixedReality.GraphicsTools
             return feature;
         }
 
-        private static ScriptableRendererFeature CreateMagnifierRenderObjectsFeature(string name, RenderObjects.RenderObjectsSettings settings)
+        private ScriptableRendererFeature CreateMagnifierRenderObjectsFeature(string name, RenderObjects.RenderObjectsSettings settings)
         {
             RenderObjects feature = ScriptableObject.CreateInstance<RenderObjects>();
             feature.name = name;
             feature.settings = settings;
 
             return feature;
-        }
-
-        private static void InsertFeature(List<ScriptableRendererFeature> features, ScriptableRendererFeature feature, string targetName, AddMode mode)
-        {
-            int insertIndex = -1;
-
-            if (!string.IsNullOrEmpty(targetName))
-            {
-                insertIndex = features.FindIndex(x => x.name == targetName);
-            }
-
-            if (insertIndex == -1)
-            {
-                insertIndex = features.Count - 1;
-            }
-
-            if (mode == AddMode.After)
-            {
-                ++insertIndex;
-            }
-
-            features.Insert(insertIndex, feature);
         }
     }
 }
